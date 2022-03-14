@@ -95,19 +95,17 @@ class Command:
         if solidarypri == "Yes" or solidarypri == "yes":
             solidarypublic = False
             solidaryprivate = True
-            await solidarycon(solidarypublic, solidaryprivate, solidaryhast, solidarysum, solidaryday, solidarycom)
+            if solidaryhast.startswith("#"):
+                # Save info to database for reading it later
+            else:
+                await send_text_to_room(self.client, self.room.room_id, "You have to set hashtag to your solidary request if request is private.")
         elif solidarypri == "No" or solidarypri == "no":
             solidarypublic = True
             solidaryprivate = False
-            await solidarycon(solidarypublic, solidaryprivate, solidaryhast, solidarysum, solidaryday, solidarycom)
         elif not solidarypri or solidarypri == "help":
             text = "You have to set all functions, type help to get more info."
             await send_text_to_room(self.client, self.room.room_id, text)
             await _show_help
-    async def solidarycon(self, solidarypublic, solidaryprivate, solidaryhast, solidarysum, solidaryday, solidarycom):
-        if solidaryprivate = False or solidarypublic = True: # Check if solidary is public
-            await _show_help
-
     async def _unknown_command(self):
         await send_text_to_room(
             self.client,
