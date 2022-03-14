@@ -20,7 +20,7 @@ def read_file(path_segments):
         return f.read()
 
 
-version = exec_file(("solidarybot", "__init__.py"))["__version__"]
+version = exec_file(("my_project_name", "__init__.py"))["__version__"]
 long_description = read_file(("README.md",))
 
 
@@ -55,5 +55,5 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     # Allow the user to run the bot with `my-project-name ...`
-    scripts=["solidarybot"],
+    scripts=["my-project-name"],
 )
