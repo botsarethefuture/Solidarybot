@@ -86,6 +86,27 @@ class Command:
         else:
             text = "Unknown help topic!"
         await send_text_to_room(self.client, self.room.room_id, text)
+    async def _new_solidary(self):
+        solidaryhast = self.args[0]
+        solidarysum = self.args[1]
+        solidarypri = self.args[2]
+        solidaryday = self.args[3]
+        solidarycom = self.args[4]
+        if solidarypri == "Yes" or solidarypri == "yes":
+            solidarypublic = False
+            solidaryprivate = True
+            await solidarycon(solidarypublic, solidaryprivate, solidaryhast, solidarysum, solidaryday, solidarycom)
+        elif solidarypri == "No" or solidarypri == "no":
+            solidarypublic = True
+            solidaryprivate = False
+            await solidarycon(solidarypublic, solidaryprivate, solidaryhast, solidarysum, solidaryday, solidarycom)
+        elif not solidarypri or solidarypri == "help":
+            text = "You have to set all functions, type help to get more info."
+            await send_text_to_room(self.client, self.room.room_id, text)
+            await _show_help
+    async def solidarycon(self, solidarypublic, solidaryprivate, solidaryhast, solidarysum, solidaryday, solidarycom):
+        if solidaryprivate = False or solidarypublic = True: # Check if solidary is public
+            await _show_help
 
     async def _unknown_command(self):
         await send_text_to_room(
