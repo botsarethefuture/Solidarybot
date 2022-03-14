@@ -127,8 +127,8 @@ class Storage:
     def _new_solidary(self, solidaryhast: str, solidarysum: str, solidarygo: str)
         self.cursor.execute("""
             insert into solidary
-                (hashtag, sum, person, private) values 
-                (?, ?, ?);
+                (hashtag, maxsum, person, private) values 
+                (?, ?, ?, ?);
         """, (solidaryhast, solidarysum, solidarygo))
         self.conn.commit()
     def _get_solidary(self):
@@ -136,4 +136,5 @@ class Storage:
             select * from solidary where end = False and private = False;
         """)
         sopen = results.fetchall()
-    def _get_one_solidary(self, )
+        
+

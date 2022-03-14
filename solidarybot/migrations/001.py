@@ -3,7 +3,7 @@ def forward(cursor):
             CREATE TABLE solidary (
                 id INTEGER PRIMARY KEY autoincrement,
                 hashtag text,
-                sum text,
+                sum text default '0',
                 maxsum text,
                 person text default '',
                 private text default 'False',

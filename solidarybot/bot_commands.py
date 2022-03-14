@@ -118,10 +118,6 @@ class Command:
                 # send sum to random
             if subsubcommand.startswith("#"):
                 hashtag = self.args[1]
-                results = store.cursor.execute("""
-                    select * from solidary where end = false and hashtag = ?
-                """, (hashtag,))
-                return results.fetchone()
                 
 
 
