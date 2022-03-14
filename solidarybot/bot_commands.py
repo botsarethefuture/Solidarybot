@@ -87,25 +87,44 @@ class Command:
             text = "Unknown help topic!"
         await send_text_to_room(self.client, self.room.room_id, text)
     async def _new_solidary(self):
+        """
+        Handles the new solidary requests
+        """
         solidaryhast = self.args[0]
         solidarysum = self.args[1]
         solidarypri = self.args[2]
-        solidaryday = self.args[3]
-        solidarycom = self.args[4]
+        solidarygo = self.args[3]
         if solidarypri == "Yes" or solidarypri == "yes":
-            solidarypublic = False
-            solidaryprivate = True
+            solidarypublic = False # Solidary request is not public
+            solidaryprivate = True # Solidary request is not public
             if solidaryhast.startswith("#"):
-                # Save info to database for reading it later
+                if solidarygo.startswith("@"):
+                    # Save info to database for reading it later
             else:
                 await send_text_to_room(self.client, self.room.room_id, "You have to set hashtag to your solidary request if request is private.")
         elif solidarypri == "No" or solidarypri == "no":
-            solidarypublic = True
-            solidaryprivate = False
+            solidarypublic = True # Solidary request is public
+            solidaryprivate = False # Solidary request is public 
         elif not solidarypri or solidarypri == "help":
             text = "You have to set all functions, type help to get more info."
             await send_text_to_room(self.client, self.room.room_id, text)
             await _show_help
+    async def _solidary_get(self, store: Storage):
+        subcommand = self.args[0]
+        if subcommand == "Donate":
+            subsubcommand = self.args[1]
+            if subsubcommand == "random":
+                randomsum = self.args[2]
+                # send sum to random
+            if subsubcommand.startswith("#"):
+                hashtag = self.args[1]
+                results = store.cursor.execute("""
+                    select * from solidary where end = false and hashtag = ?
+                """, (hashtag,))
+                return results.fetchone()
+                
+
+
     async def _unknown_command(self):
         await send_text_to_room(
             self.client,
