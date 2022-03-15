@@ -124,11 +124,11 @@ class Storage:
             self.cursor.execute(args[0].replace("?", "%s"), *args[1:])
         else:
             self.cursor.execute(*args)
-    def _new_solidary(self, solidaryhast: str, solidarysum: str, solidarygo: str)
+    def new_solidary(self, solidaryhast: str, solidarysum: str, solidarygo: str):
         self.cursor.execute("""
             insert into solidary
-                (hashtag, maxsum, person, private) values 
-                (?, ?, ?, ?);
+                (hashtag, maxsum, person) values 
+                (?, ?, ?);
         """, (solidaryhast, solidarysum, solidarygo))
         self.conn.commit()
     def _get_solidary(self):
@@ -136,5 +136,27 @@ class Storage:
             select * from solidary where end = False and private = False;
         """)
         sopen = results.fetchall()
-        
+    def get_users_solidary(self, donatehash: str):
+        results = self.cursor.execute("""
+            select sum, maxsum, private from solidary where person = ?;
+        """, (donatehash,))
+        return results.fetchall()
+    def get_user_solidary(self, donatehash: str):
+        results = self.cursor.execute("""
+            select * from solidary where hashtag = ?;
+        """, (donatehash,))
+        return results.fetchall()
+    def hell(self):
+        self.cursor.execute("""
+            CREATE TABLE solidary (
+                id INTEGER PRIMARY KEY autoincrement,
+                hashtag text,
+                sum text default '0',
+                maxsum text,
+                person text default '',
+                private text default 'False',
+                end text default 'False',
+                roomid text
+            )
+    """)
 

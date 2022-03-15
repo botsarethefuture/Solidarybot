@@ -1,0 +1,2 @@
+solidarycreated = f""
+solidarycreated += ""

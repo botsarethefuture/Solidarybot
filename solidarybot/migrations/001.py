@@ -7,6 +7,7 @@ def forward(cursor):
                 maxsum text,
                 person text default '',
                 private text default 'False',
-                end text default 'False'
+                end text default 'False',
+                roomid text
             )
     """)

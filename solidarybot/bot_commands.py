@@ -1,10 +1,9 @@
 from nio import AsyncClient, MatrixRoom, RoomMessageText
-
+import logging
 from solidarybot.chat_functions import react_to_event, send_text_to_room
 from solidarybot.config import Config
 from solidarybot.storage import Storage
-
-
+logger = logging.getLogger(__name__)
 class Command:
     def __init__(
         self,
@@ -46,6 +45,10 @@ class Command:
             await self._react()
         elif self.command.startswith("help"):
             await self._show_help()
+        elif self.command.startswith("new"):
+            await self._solidary_new()
+        elif self.command.startswith("donate"):
+            await self._solidary_donate()
         else:
             await self._unknown_command()
 
@@ -86,40 +89,46 @@ class Command:
         else:
             text = "Unknown help topic!"
         await send_text_to_room(self.client, self.room.room_id, text)
-    async def _new_solidary(self):
+    async def _solidary_new(self):
         """
         Handles the new solidary requests
         """
         solidaryhast = self.args[0]
         solidarysum = self.args[1]
-        solidarypri = self.args[2]
-        solidarygo = self.args[3]
-        if solidarypri == "Yes" or solidarypri == "yes":
-            solidarypublic = False # Solidary request is not public
-            solidaryprivate = True # Solidary request is not public
-            if solidaryhast.startswith("#"):
-                if solidarygo.startswith("@"):
-                    # Save info to database for reading it later
-            else:
-                await send_text_to_room(self.client, self.room.room_id, "You have to set hashtag to your solidary request if request is private.")
-        elif solidarypri == "No" or solidarypri == "no":
-            solidarypublic = True # Solidary request is public
-            solidaryprivate = False # Solidary request is public 
-        elif not solidarypri or solidarypri == "help":
-            text = "You have to set all functions, type help to get more info."
-            await send_text_to_room(self.client, self.room.room_id, text)
-            await _show_help
-    async def _solidary_get(self, store: Storage):
-        subcommand = self.args[0]
-        if subcommand == "Donate":
-            subsubcommand = self.args[1]
-            if subsubcommand == "random":
-                randomsum = self.args[2]
-                # send sum to random
-            if subsubcommand.startswith("#"):
-                hashtag = self.args[1]
-                
-
+        solidarygo = self.args[2]
+        if solidaryhast.startswith("#"):
+            if solidarygo.startswith("@"):
+                self.store.new_solidary(solidaryhast, solidarysum, solidarygo)
+                solidarycreateden = f"🇺🇸 <br> New private solidary request created with hashtag: '{solidaryhast}'."
+                solidarycreatedfi = f"🇫🇮 <br> Uusi yksityinen solidaarisuuspyyntö on luotu hashtagilla: '{solidaryhast}'."
+                solidarycreated = (solidarycreateden + "<br> --- <br>" + solidarycreatedfi)
+                await send_text_to_room(self.client, self.room.room_id, solidarycreated)
+    async def _solidary_donate(self):
+        donateamount = self.args[0]
+        donatehash = self.args[1]
+        if donatehash.startswith("@"):
+            self.store.get_users_solidary(donatehash)
+        elif donatehash.startswith("#"):
+            results = self.store.cursor.execute("""
+                select sum from solidary where hashtag = ?;
+            """, (donatehash,))
+            results1 = self.store.cursor.execute("""
+                select maxsum from solidary where hashtag = ?;
+            """, (donatehash,))
+            cat = results.fetchone()
+            cat1 = results1.fetchone()
+            logger.info(cat)
+            logger.info(cat1)
+            newsum = (cat, donateamount)
+            self.store.cursor.execute("""
+                update solidary set sum = ? where hashtag = ?;
+            """, (newsum, donatehash))
+            logger.info(newsum)
+            self.conn.commit()
+            logger.info(results)
+        elif donateamount.startswith("#") or donateamount.startswith("@"):
+            await send_text_to_room(self.client, self.room.room_id, "Use the amount as the first value")
+        
 
     async def _unknown_command(self):
         await send_text_to_room(
