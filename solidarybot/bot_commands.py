@@ -1,4 +1,4 @@
-from nio import AsyncClient, MatrixRoom, RoomMessageText
+from nio import AsyncClient, MatrixRoom, RoomMessageText, EnableEncryptionBuilder
 import logging
 from solidarybot.chat_functions import react_to_event, send_text_to_room
 from solidarybot.config import Config
@@ -49,6 +49,10 @@ class Command:
             await self._solidary_new()
         elif self.command.startswith("donate"):
             await self._solidary_donate()
+        elif self.command.startswith("requests"):
+            await self._solidary_requests()
+        elif self.command.startswith("calc"):
+            await self.donatefinalamount()
         else:
             await self._unknown_command()
 
@@ -85,7 +89,11 @@ class Command:
         if topic == "rules":
             text = "These are the rules!"
         elif topic == "commands":
-            text = "Available commands: ..."
+            text = "Available commands: <br>"
+            text += "`new` <br> use: <br> new [wanted sum] [wanted hashtag] [your username]"
+            text += "`donate` <br> use: <br> donate [sum you want to donate] [hashtag to donate] [your username]"
+        elif topic == "new":
+            text = "Text"
         else:
             text = "Unknown help topic!"
         await send_text_to_room(self.client, self.room.room_id, text)
@@ -99,35 +107,67 @@ class Command:
         if solidaryhast.startswith("#"):
             if solidarygo.startswith("@"):
                 self.store.new_solidary(solidaryhast, solidarysum, solidarygo)
-                solidarycreateden = f"🇺🇸 <br> New private solidary request created with hashtag: '{solidaryhast}'."
-                solidarycreatedfi = f"🇫🇮 <br> Uusi yksityinen solidaarisuuspyyntö on luotu hashtagilla: '{solidaryhast}'."
+                solidarycreateden = f"🇺🇸 <br> New solidary request created with hashtag: '{solidaryhast}'."
+                solidarycreatedfi = f"🇫🇮 <br> Uusi solidaarisuuspyyntö on luotu hashtagilla: '{solidaryhast}'."
                 solidarycreated = (solidarycreateden + "<br> --- <br>" + solidarycreatedfi)
                 await send_text_to_room(self.client, self.room.room_id, solidarycreated)
+                await self.client.room_create(
+                name=solidaryhast,
+                topic=("Täällä ovat kaikki jotka ovat lahjoittaneet " + solidaryhast + "tiin"),
+                initial_state=[EnableEncryptionBuilder().as_dict()],
+            )
+    async def _solidary_requests(self):
+        sa = "False"
+        results = self.store.cursor.execute("""
+            select * from solidary where private = ?;
+        """, (sa,))
+        results2 = results.fetchall()
+        result_text = ("Avaible solidary requests <br>" + str(results2))
+        await send_text_to_room(self.client, self.room.room_id, result_text)
+
+        
     async def _solidary_donate(self):
         donateamount = self.args[0]
         donatehash = self.args[1]
+        donateuser = self.args[2]
         if donatehash.startswith("@"):
-            self.store.get_users_solidary(donatehash)
+            await send_text_to_room(self.client, self.room.room_id, "PLEASE TRY AGAIN")
         elif donatehash.startswith("#"):
             results = self.store.cursor.execute("""
                 select sum from solidary where hashtag = ?;
             """, (donatehash,))
-            results1 = self.store.cursor.execute("""
-                select maxsum from solidary where hashtag = ?;
-            """, (donatehash,))
+            #results1 = self.store.cursor.execute("""
+                #select maxsum from solidary where hashtag = ?;
+            #""", (donatehash,))
             cat = results.fetchone()
-            cat1 = results1.fetchone()
-            logger.info(cat)
-            logger.info(cat1)
-            newsum = (cat, donateamount)
-            self.store.cursor.execute("""
-                update solidary set sum = ? where hashtag = ?;
-            """, (newsum, donatehash))
-            logger.info(newsum)
-            self.conn.commit()
-            logger.info(results)
-        elif donateamount.startswith("#") or donateamount.startswith("@"):
-            await send_text_to_room(self.client, self.room.room_id, "Use the amount as the first value")
+            catamount = (" " + str(cat) + " " + donateamount + " " + donatehash)
+            await send_text_to_room(self.client, "!XSGosuFCQFOqWfLMoC:elokapina.fi", catamount)
+            
+            #self.store.cursor.execute("""
+                #update solidary set sum = ? where hashtag = ?;
+            #""", (newsum, donatehash))
+            #self.store.conn.commit()
+        elif donateamount.startswith("#"):
+            await send_text_to_room(self.client, self.room.room_id, "cat")
+            results = self.store.cursor.execute("""
+                select sum from solidary where hashtag = ?;
+            """, (donatehash,))
+            cadf = results.fetchone()
+            await send_text_to_room(self.client, self.room.room_id, cadf)
+
+    async def donatefinalamount(self):
+        finalamount = self.args[0]
+        finalhast = self.args[1]
+        self.store.cursor.execute("""
+            update solidary set sum = ? where hashtag = ?;
+        """, (finalamount, finalhast))
+        self.store.conn.commit()
+        results = self.store.cursor.execute("""
+            select sum from solidary where hashtag = ?;
+        """, (finalhast,))
+        finalamounttest = results.fetchone()
+        finalamounttest = (str(finalamounttest))
+        await send_text_to_room(self.client, self.room.room_id, finalamounttest)
         
 
     async def _unknown_command(self):
