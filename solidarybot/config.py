@@ -104,6 +104,8 @@ class Config:
         self.homeserver_url = self._get_cfg(["matrix", "homeserver_url"], required=True)
 
         self.command_prefix = self._get_cfg(["command_prefix"], default="!c") + " "
+        self.calcroom = self._get_cfg(["calculation_room"])
+        self.calcroom = self._get_cfg(["log_room"])
 
     def _get_cfg(
         self,

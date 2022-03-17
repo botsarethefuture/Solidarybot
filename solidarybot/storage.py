@@ -124,12 +124,12 @@ class Storage:
             self.cursor.execute(args[0].replace("?", "%s"), *args[1:])
         else:
             self.cursor.execute(*args)
-    def new_solidary(self, solidaryhast: str, solidarysum: str, solidarygo: str):
+    def new_solidary(self, solidaryhast: str, solidarysum: str, solidarygo: str, solidaryroomid: str):
         self.cursor.execute("""
             insert into solidary
-                (hashtag, maxsum, person) values 
-                (?, ?, ?);
-        """, (solidaryhast, solidarysum, solidarygo))
+                (hashtag, maxsum, person, roomid) values 
+                (?, ?, ?, ?);
+        """, (solidaryhast, solidarysum, solidarygo, solidaryroomid))
         self.conn.commit()
     def _get_solidary(self):
         results = self.cursor.execute("""
