@@ -40,7 +40,7 @@ setup(
         "dev": [
             "isort==5.12.0",
             "flake8==6.0.0",
-            "flake8-comprehensions==3.10.1",
+            "flake8-comprehensions==3.11.0",
             "black==23.1.0",
         ],
     },
