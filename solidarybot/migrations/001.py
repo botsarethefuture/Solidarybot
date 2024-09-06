@@ -1,5 +1,6 @@
 def forward(cursor):
-    cursor.execute("""
+    cursor.execute(
+        """
             CREATE TABLE solidary (
                 id INTEGER PRIMARY KEY autoincrement,
                 hashtag text,
@@ -10,4 +11,5 @@ def forward(cursor):
                 end text default 'False',
                 roomid text
             )
-    """)
+    """
+    )

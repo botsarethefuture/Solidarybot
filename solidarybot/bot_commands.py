@@ -4,7 +4,10 @@ import logging
 from solidarybot.chat_functions import react_to_event, send_text_to_room
 from solidarybot.config import Config
 from solidarybot.storage import Storage
+
 logger = logging.getLogger(__name__)
+
+
 class Command:
     def __init__(
         self,
@@ -52,8 +55,8 @@ class Command:
             await self._solidary_donate()
         elif self.command.startswith("requests"):
             await self._solidary_requests()
-        #elif self.command.startswith("room"):
-            #await self.ridset()
+        # elif self.command.startswith("room"):
+        # await self.ridset()
         else:
             await self._unknown_command()
 
@@ -91,13 +94,16 @@ class Command:
             text = "These are the rules!"
         elif topic == "commands":
             text = "Available commands: <br>"
-            text += "`new` <br> use: <br> new [wanted sum] [wanted hashtag] [your username]"
+            text += (
+                "`new` <br> use: <br> new [wanted sum] [wanted hashtag] [your username]"
+            )
             text += "`donate` <br> use: <br> donate [sum you want to donate] [hashtag to donate] [your username]"
         elif topic == "new":
             text = "Text"
         else:
             text = "Unknown help topic!"
         await send_text_to_room(self.client, self.room.room_id, text)
+
     async def _solidary_new(self):
         """
         Handles the new solidary requests
@@ -109,22 +115,34 @@ class Command:
             if solidarygo.startswith("@"):
                 solidarycreateden = f"🇺🇸 <br> New solidary request created with hashtag: '{solidaryhast}'."
                 solidarycreatedfi = f"🇫🇮 <br> Uusi solidaarisuuspyyntö on luotu hashtagilla: '{solidaryhast}'."
-                solidarycreated = (solidarycreateden + "<br> --- <br>" + solidarycreatedfi)
+                solidarycreated = (
+                    solidarycreateden + "<br> --- <br>" + solidarycreatedfi
+                )
                 await send_text_to_room(self.client, self.room.room_id, solidarycreated)
                 response = await self.client.room_create(
-                name=solidaryhast,
-                topic=("Täällä ovat kaikki jotka ovat lahjoittaneet " + solidaryhast + "tiin"),
-                initial_state=[EnableEncryptionBuilder().as_dict()],
+                    name=solidaryhast,
+                    topic=(
+                        "Täällä ovat kaikki jotka ovat lahjoittaneet "
+                        + solidaryhast
+                        + "tiin"
+                    ),
+                    initial_state=[EnableEncryptionBuilder().as_dict()],
                 )
                 room_id = response.room_id
                 logger.info(f"Breakout room created at {room_id}")
                 solidaryroomid = room_id
-                self.store.new_solidary(solidaryhast, solidarysum, solidarygo, solidaryroomid)
+                self.store.new_solidary(
+                    solidaryhast, solidarysum, solidarygo, solidaryroomid
+                )
+
     async def _solidary_requests(self):
         sa = "False"
-        hashtags = self.store.cursor.execute("""
+        hashtags = self.store.cursor.execute(
+            """
             select hashtag from solidary where private = ?;
-        """, (sa,))
+        """,
+            (sa,),
+        )
         hashtag = hashtags.fetchall()
         hashtag = str(hashtag)
         hashtag1 = hashtag.replace("(", "")
@@ -133,10 +151,9 @@ class Command:
         hashtag4 = hashtag3.replace(",", "")
         hashtag5 = hashtag4.replace("[", "")
         hashtag6 = hashtag5.replace("]", "")
-        result_text = ("Avaible solidary requests <br>" + str(hashtag6))
+        result_text = "Avaible solidary requests <br>" + str(hashtag6)
         await send_text_to_room(self.client, self.room.room_id, result_text)
 
-        
     async def _solidary_donate(self):
         donateamount = self.args[0]
         donatehash = self.args[1]
@@ -144,12 +161,18 @@ class Command:
         if donatehash.startswith("@"):
             await send_text_to_room(self.client, self.room.room_id, "PLEASE TRY AGAIN")
         elif donatehash.startswith("#"):
-            results = self.store.cursor.execute("""
+            results = self.store.cursor.execute(
+                """
                 select sum from solidary where hashtag = ?;
-            """, (donatehash,))
-            ridre = self.store.cursor.execute("""
+            """,
+                (donatehash,),
+            )
+            ridre = self.store.cursor.execute(
+                """
                 select roomid from solidary where hashtag = ?;
-            """, (donatehash,))
+            """,
+                (donatehash,),
+            )
             cat = results.fetchone()
             rid = ridre.fetchone()
             logger.info(f"RID={rid}")
@@ -163,15 +186,22 @@ class Command:
             await self.donatefinalamount1(donatehash, donateamount)
         elif donateamount.startswith("#"):
             await send_text_to_room(self.client, self.room.room_id, "cat")
-            results = self.store.cursor.execute("""
+            results = self.store.cursor.execute(
+                """
                 select sum from solidary where hashtag = ?;
-            """, (donatehash,))
+            """,
+                (donatehash,),
+            )
             cadf = results.fetchone()
             await send_text_to_room(self.client, self.room.room_id, cadf)
+
     async def donatefinalamount1(self, donatehash: str, donateamount: int):
-        results = self.store.cursor.execute("""
+        results = self.store.cursor.execute(
+            """
                 select sum from solidary where hashtag = ?;
-        """, (donatehash,))
+        """,
+            (donatehash,),
+        )
         ridi = results.fetchone()
         da = str(ridi)
         final_amount_1 = da.replace("(", "")
@@ -179,15 +209,16 @@ class Command:
         final_amount2 = final_amount1.replace("'", "")
         final_amount3 = final_amount2.replace("'", "")
         final_amount4 = final_amount3.replace(",", "")
-        final_amount = (int(final_amount4) + int(donateamount))
+        final_amount = int(final_amount4) + int(donateamount)
         logger.info(f"{final_amount}")
-        self.store.cursor.execute("""
+        self.store.cursor.execute(
+            """
             update solidary set sum = ? where hashtag = ?;
-        """, (final_amount, donatehash))
+        """,
+            (final_amount, donatehash),
+        )
         self.store.conn.commit()
         await send_text_to_room(self.client, self.room.room_id, str(final_amount))
-
-    
 
     async def _unknown_command(self):
         await send_text_to_room(
